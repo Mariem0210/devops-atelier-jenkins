@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven'
+        jdk 'JDK17'
+    }
+
+    triggers {
+        githubPush()
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Tests unitaires') {
+            steps {
+                dir('backend') {
+                    bat 'mvn clean test'
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'backend/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                dir('backend') {
+                    bat 'mvn package -DskipTests'
+                }
+            }
+        }
+
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'backend/target/*.jar', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success { echo 'Build OK : livrable disponible dans backend/target/' }
+        failure { echo 'Build en echec' }
+    }
+}
