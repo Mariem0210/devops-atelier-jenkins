@@ -3,11 +3,11 @@ pipeline {
 
     tools {
         maven 'Maven'
-        jdk 'JDK17'
     }
 
     triggers {
         githubPush()
+        pollSCM('* * * * *')
     }
 
     stages {
@@ -20,7 +20,7 @@ pipeline {
         stage('Tests unitaires') {
             steps {
                 dir('backend') {
-                    bat 'mvn clean test'
+                    sh 'mvn clean test'
                 }
             }
             post {
@@ -33,7 +33,7 @@ pipeline {
         stage('Package') {
             steps {
                 dir('backend') {
-                    bat 'mvn package -DskipTests'
+                    sh 'mvn package -DskipTests'
                 }
             }
         }
